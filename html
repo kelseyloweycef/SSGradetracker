@@ -3,202 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Citizens | Staff Portal</title>
+    <title>Social Studies Data Tracker</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .tab-active { color: #2563eb; border-bottom: 3px solid #2563eb; background: #f8fafc; }
-        .hidden-tab { display: none; }
-        .sidebar-link:hover { background: rgba(255,255,255,0.1); }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Inter', 'sans-serif'] },
+            colors: { school: { blue: '#0f172a', lightBlue: '#1e3a8a' } }
+          }
+        }
+      }
+    </script>
 </head>
-<body class="bg-slate-50 min-h-screen flex">
+<body class="bg-gray-50 text-slate-800 antialiased">
+    
+    <div id="root"></div>
 
-    <aside class="w-64 bg-slate-900 text-white hidden md:flex flex-col shrink-0">
-        <div class="p-6 border-b border-slate-800">
-            <h1 class="text-xl font-black tracking-tighter uppercase italic">Global Citizens</h1>
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">International Curriculum</p>
-        </div>
-        <nav class="flex-1 p-4 space-y-2">
-            <a href="#" class="sidebar-link flex items-center gap-3 p-3 rounded-xl bg-blue-600 font-bold text-sm">
-                <i class="fa-solid fa-users w-5"></i> Student Tracking
-            </a>
-            <a href="#" class="sidebar-link flex items-center gap-3 p-3 rounded-xl text-slate-400 font-bold text-sm">
-                <i class="fa-solid fa-book-open w-5"></i> Department Docs
-            </a>
-            <a href="#" class="sidebar-link flex items-center gap-3 p-3 rounded-xl text-slate-400 font-bold text-sm">
-                <i class="fa-solid fa-chart-line w-5"></i> Data Analytics
-            </a>
-        </nav>
-        <div class="p-6 border-t border-slate-800">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-black">ST</div>
-                <div class="text-[10px] font-bold uppercase text-slate-400">Staff Member</div>
-            </div>
-        </div>
-    </aside>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-    <main class="flex-1 flex flex-col h-screen overflow-hidden">
+        // --- 1. FIREBASE CONFIGURATION (Using your new ssgradetracker project) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1fpS3ftTOuiiKCzB1RO_PB00IpDdcaHE",
+            authDomain: "ssgradetracker.firebaseapp.com",
+            projectId: "ssgradetracker",
+            storageBucket: "ssgradetracker.firebasestorage.app",
+            messagingSenderId: "271487711446",
+            appId: "1:271487711446:web:6b4c2bad5f7ca693b17177",
+            measurementId: "G-6QC4NML8L7"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
         
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0">
-            <div class="flex items-center gap-2 text-sm font-bold text-slate-500">
-                <span>Dashboard</span>
-                <i class="fa-solid fa-chevron-right text-[10px]"></i>
-                <span class="text-slate-900" id="headerStudentName">Student Profile</span>
-            </div>
-            <div class="flex items-center gap-4">
-                <button class="bg-slate-100 p-2 rounded-lg text-slate-500"><i class="fa-solid fa-bell"></i></button>
-            </div>
-        </header>
+        // POINTING TO A COLLECTION (Better for data tracking than a single doc)
+        const STUDENTS_REF = db.collection('students');
 
-        <div class="flex-1 overflow-auto">
-            <div class="max-w-6xl mx-auto p-8">
-                
-                <div class="flex items-end justify-between mb-8">
-                    <div class="flex items-center gap-6">
-                        <div id="profileIcon" class="w-24 h-24 bg-blue-600 rounded-3xl flex items-center justify-center text-white text-4xl font-black shadow-2xl shadow-blue-200">A</div>
-                        <div>
-                            <div class="flex items-center gap-3">
-                                <h2 id="displayName" class="text-4xl font-black text-slate-900 tracking-tight">Alex Thompson</h2>
-                                <span id="yearBadge" class="px-3 py-1 bg-slate-900 text-white rounded-lg text-xs font-black">Y13</span>
-                            </div>
-                            <p class="text-slate-500 font-medium mt-1">Candidate ID: <span class="font-bold">HK-09223</span></p>
-                            <div id="senBadge" class="hidden mt-3">
-                                <span class="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-md text-[10px] font-black uppercase tracking-widest border border-amber-100">Learning Support (SEN)</span>
-                            </div>
+        // --- MAIN APP COMPONENT ---
+        const DataTracker = () => {
+            const [students, setStudents] = useState([]);
+            const [newName, setNewName] = useState("");
+            const [newGrade, setNewGrade] = useState("");
+            const [loading, setLoading] = useState(true);
+
+            // 2. LOAD DATA (Live Listener)
+            useEffect(() => {
+                const unsubscribe = STUDENTS_REF.onSnapshot((snapshot) => {
+                    const data = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    setStudents(data);
+                    setLoading(false);
+                }, (error) => {
+                    console.error("Firebase Rule Error:", error);
+                    setLoading(false);
+                });
+                return () => unsubscribe();
+            }, []);
+
+            // 3. SAVE DATA (Ensuring Numbers)
+            const handleAddStudent = (e) => {
+                e.preventDefault();
+                if (!newName || !newGrade) return;
+
+                STUDENTS_REF.doc(newName).set({
+                    name: newName,
+                    grade: Number(newGrade), // CRITICAL: Convert string to number
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                setNewName("");
+                setNewGrade("");
+            };
+
+            const handleDelete = (id) => {
+                STUDENTS_REF.doc(id).delete();
+            };
+
+            return (
+                <div className="min-h-screen">
+                    <header className="bg-school-blue text-white p-8 border-b-4 border-school-lightBlue">
+                        <div className="max-w-4xl mx-auto">
+                            <h1 className="text-3xl font-bold">SS Grade Tracker</h1>
+                            <p className="text-blue-200 text-sm mt-1">Connected to: {firebaseConfig.projectId}</p>
                         </div>
-                    </div>
-                </div>
+                    </header>
 
-                <div class="flex bg-white rounded-2xl border border-slate-200 overflow-hidden mb-8 shadow-sm">
-                    <button onclick="switchTab('performance')" id="tab-performance" class="tab-btn tab-active flex-1 py-4 text-[10px] font-black uppercase tracking-widest transition-all">Academic Performance</button>
-                    <button onclick="switchTab('observations')" id="tab-observations" class="tab-btn flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Staff Observations</button>
-                    <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Enrolment Settings</button>
-                </div>
-
-                <div id="content-performance" class="tab-content grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2 space-y-6" id="gradesList">
-                        </div>
-                    
-                    <div class="space-y-6">
-                        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-                            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <i class="fa-solid fa-circle-plus text-blue-600"></i> New Assessment
-                            </h3>
-                            <form id="gradeForm" class="space-y-4">
-                                <select name="subject" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 ring-blue-500/20">
-                                    <option>History</option>
-                                    <option>Geography</option>
-                                    <option>Economics</option>
-                                    <option>Psychology</option>
-                                </select>
-                                <select name="type" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
-                                    <option value="Aspirational">Aspirational Target</option>
-                                    <option value="P1 Mock">Paper 1 Mock</option>
-                                    <option value="P2 Mock">Paper 2 Mock</option>
-                                    <option value="Final">Final Grade</option>
-                                </select>
-                                <input name="grade" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black uppercase" placeholder="Enter Grade (e.g. 7)">
-                                <button type="submit" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 transition-colors">
-                                    Sync to Database
+                    <main className="max-w-4xl mx-auto p-6">
+                        {/* Input Section */}
+                        <div className="bg-white p-6 rounded-xl shadow-md mb-8">
+                            <h2 className="text-xl font-bold mb-4">Add Student Record</h2>
+                            <form onSubmit={handleAddStudent} className="flex flex-wrap gap-4">
+                                <input 
+                                    type="text" 
+                                    placeholder="Student Name" 
+                                    value={newName}
+                                    onChange={(e) => setNewName(e.target.value)}
+                                    className="flex-1 p-3 border rounded-lg outline-none focus:ring-2 ring-school-lightBlue"
+                                />
+                                <input 
+                                    type="number" 
+                                    placeholder="Grade" 
+                                    value={newGrade}
+                                    onChange={(e) => setNewGrade(e.target.value)}
+                                    className="w-32 p-3 border rounded-lg outline-none focus:ring-2 ring-school-lightBlue"
+                                />
+                                <button className="bg-school-lightBlue text-white px-6 py-3 rounded-lg font-bold hover:bg-school-blue transition">
+                                    Save Record
                                 </button>
                             </form>
                         </div>
-                    </div>
+
+                        {/* Data Display */}
+                        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                            <table className="w-full text-left">
+                                <thead className="bg-gray-100 border-b">
+                                    <tr>
+                                        <th className="p-4 font-bold">Student Name</th>
+                                        <th className="p-4 font-bold text-center">Current Grade</th>
+                                        <th className="p-4 font-bold text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {loading ? (
+                                        <tr><td colSpan="3" className="p-8 text-center text-gray-500">Loading from ssgradetracker...</td></tr>
+                                    ) : students.length === 0 ? (
+                                        <tr><td colSpan="3" className="p-8 text-center text-gray-500">No data found. Add a student to begin.</td></tr>
+                                    ) : (
+                                        students.map(student => (
+                                            <tr key={student.id} className="border-b hover:bg-gray-50">
+                                                <td className="p-4 font-medium">{student.name}</td>
+                                                <td className="p-4 text-center">
+                                                    <span className={`px-3 py-1 rounded-full font-bold ${student.grade >= 70 ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                                                        {student.grade}%
+                                                    </span>
+                                                </td>
+                                                <td className="p-4 text-right">
+                                                    <button onClick={() => handleDelete(student.id)} className="text-red-500 hover:text-red-700 font-bold text-sm">Delete</button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </main>
                 </div>
-
-                <div id="content-observations" class="tab-content hidden-tab space-y-6">
-                    <div class="bg-white p-8 rounded-3xl border border-slate-200 text-center py-20">
-                        <i class="fa-solid fa-message-dots text-slate-200 text-5xl mb-4"></i>
-                        <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest">No recent staff observations found.</p>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </main>
-
-    <script>
-        // State Management
-        const state = {
-            student: {
-                name: "Alex Thompson",
-                year: "13",
-                isSEN: true,
-                grades: [
-                    { id: 1, subject: "History", type: "Aspirational", value: "7", date: "Jan 2026" },
-                    { id: 2, subject: "History", type: "P1 Mock", value: "6", date: "Mar 2026" },
-                    { id: 3, subject: "Geography", type: "Aspirational", value: "A*", date: "Feb 2026" }
-                ]
-            }
+            );
         };
 
-        function init() {
-            document.getElementById('displayName').innerText = state.student.name;
-            document.getElementById('headerStudentName').innerText = state.student.name;
-            document.getElementById('profileIcon').innerText = state.student.name.charAt(0);
-            document.getElementById('yearBadge').innerText = `Year ${state.student.year}`;
-            if(state.student.isSEN) document.getElementById('senBadge').classList.remove('hidden');
-            renderGrades();
-        }
-
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('tab-active', 'text-blue-600'));
-            document.getElementById(`tab-${tabId}`).classList.add('tab-active', 'text-blue-600');
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden-tab'));
-            document.getElementById(`content-${tabId}`).classList.remove('hidden-tab');
-        }
-
-        function renderGrades() {
-            const container = document.getElementById('gradesList');
-            container.innerHTML = '';
-            
-            const subjects = [...new Set(state.student.grades.map(g => g.subject))];
-            
-            subjects.forEach(subject => {
-                const subGrades = state.student.grades.filter(g => g.subject === subject);
-                const section = `
-                    <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
-                        <div class="bg-slate-50 px-8 py-4 border-b border-slate-100 flex justify-between items-center">
-                            <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">${subject}</h4>
-                            <span class="text-[9px] font-bold text-slate-400 uppercase">Tracked Progress</span>
-                        </div>
-                        <table class="w-full text-left">
-                            <tbody class="divide-y divide-slate-50">
-                                ${subGrades.map(g => `
-                                    <tr class="hover:bg-slate-50/50 transition-colors">
-                                        <td class="px-8 py-5 text-[11px] font-bold text-slate-500 uppercase tracking-tight">${g.type}</td>
-                                        <td class="px-8 py-5 text-center">
-                                            <span class="px-3 py-1 bg-blue-50 text-blue-700 rounded-lg font-black text-xs">${g.value}</span>
-                                        </td>
-                                        <td class="px-8 py-5 text-right text-[10px] text-slate-400 font-bold uppercase">${g.date}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-                container.innerHTML += section;
-            });
-        }
-
-        document.getElementById('gradeForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            state.student.grades.push({
-                id: Date.now(),
-                subject: formData.get('subject'),
-                type: formData.get('type'),
-                value: formData.get('grade'),
-                date: "Apr 2026"
-            });
-            renderGrades();
-            e.target.reset();
-        });
-
-        init();
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<DataTracker />);
     </script>
 </body>
 </html>
