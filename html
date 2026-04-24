@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SS Grade Tracker | Global Citizens</title>
+    <title>SS AI Grade Tracker</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -13,18 +13,22 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .active-tab { border-bottom: 4px solid #3b82f6; color: #3b82f6; }
-    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
 </head>
 <body class="bg-slate-50">
     <div id="root"></div>
 
     <script type="text/babel">
+        import { GoogleGenerativeAI } from "@google/generative-ai";
         const { useState, useEffect } = React;
 
-        // 1. YOUR FIREBASE CONFIG
+        // 1. CONFIGURATION
         const firebaseConfig = {
             apiKey: "AIzaSyA1fpS3ftTOuiiKCzB1RO_PB00IpDdcaHE",
             authDomain: "ssgradetracker.firebaseapp.com",
@@ -34,149 +38,118 @@
             appId: "1:271487711446:web:6b4c2bad5f7ca693b17177"
         };
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        const GEMINI_API_KEY = "AIzaSyAo5-l1ZU0aRwUOmt7H42vyt3DPQZlKeb0";
+
+        // Initialize
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const STUDENTS_REF = db.collection('students');
+        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
         const App = () => {
-            const [view, setView] = useState('dashboard'); // 'dashboard' or 'add'
+            const [view, setView] = useState('dashboard');
             const [students, setStudents] = useState([]);
             const [formData, setFormData] = useState({ name: '', grade: '', target: '' });
-            const [loading, setLoading] = useState(true);
+            const [aiResult, setAiResult] = useState({ id: null, text: '' });
+            const [isGenerating, setIsGenerating] = useState(false);
 
-            // 2. LIVE DATA SYNC (The "Success" Engine)
             useEffect(() => {
-                const unsubscribe = STUDENTS_REF.orderBy('name').onSnapshot((snapshot) => {
-                    const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    setStudents(list);
-                    setLoading(false);
+                const unsubscribe = STUDENTS_REF.orderBy('name').onSnapshot(snap => {
+                    setStudents(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
                 });
                 return () => unsubscribe();
             }, []);
 
-            // 3. SAVE FUNCTION (The "Explicit" Math Fix)
+            // 2. THE AI FUNCTION (The "Basis" of your AI Studio prompt)
+            const handleGenerateAI = async (student) => {
+                setIsGenerating(true);
+                try {
+                    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                    
+                    // This is where you paste your AI Studio "System Instructions"
+                    const prompt = `You are an expert Social Studies educator. 
+                        Write a professional teacher report comment for ${student.name}. 
+                        Current Grade: ${student.grade}%. 
+                        Target Grade: ${student.target}%.
+                        Context: Use the Global Citizens framework. Keep it under 40 words.`;
+
+                    const result = await model.generateContent(prompt);
+                    const response = await result.response;
+                    setAiResult({ id: student.id, text: response.text() });
+                } catch (error) {
+                    console.error("AI Error:", error);
+                    setAiResult({ id: student.id, text: "Error generating comment. Check connection." });
+                }
+                setIsGenerating(false);
+            };
+
             const handleSave = (e) => {
                 e.preventDefault();
-                if (!formData.name) return alert("Enter a name");
-
                 STUDENTS_REF.doc(formData.name).set({
                     name: formData.name,
-                    grade: Number(formData.grade), // Force Number
-                    target: Number(formData.target), // Force Number
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    grade: Number(formData.grade),
+                    target: Number(formData.target)
                 }, { merge: true });
-
                 setFormData({ name: '', grade: '', target: '' });
-                setView('dashboard'); // Auto-return to list
+                setView('dashboard');
             };
 
             return (
-                <div className="min-h-screen flex flex-col">
-                    {/* Header: Mimicking your professional style */}
-                    <header className="bg-slate-900 text-white p-6 shadow-xl">
+                <div className="min-h-screen pb-20">
+                    <header className="bg-slate-900 text-white p-6 shadow-lg mb-8">
                         <div className="max-w-4xl mx-auto flex justify-between items-center">
-                            <div>
-                                <h1 className="text-2xl font-bold tracking-tight">SS GRADE TRACKER</h1>
-                                <p className="text-slate-400 text-xs">Curriculum & Progress Management</p>
-                            </div>
-                            <div className="flex gap-6">
-                                <button 
-                                    onClick={() => setView('dashboard')}
-                                    className={`pb-1 font-medium transition ${view === 'dashboard' ? 'active-tab' : 'text-slate-400'}`}
-                                >
-                                    Dashboard
-                                </button>
-                                <button 
-                                    onClick={() => setView('add')}
-                                    className={`pb-1 font-medium transition ${view === 'add' ? 'active-tab' : 'text-slate-400'}`}
-                                >
-                                    Add Student
-                                </button>
+                            <h1 className="text-xl font-bold tracking-widest">SS DATA & AI TRACKER</h1>
+                            <div className="flex gap-4">
+                                <button onClick={() => setView('dashboard')} className="text-sm font-bold opacity-80 hover:opacity-100">DASHBOARD</button>
+                                <button onClick={() => setView('add')} className="bg-blue-600 px-4 py-2 rounded font-bold text-sm">ADD STUDENT</button>
                             </div>
                         </div>
                     </header>
 
-                    <main className="max-w-4xl mx-auto w-full p-6">
-                        {/* VIEW: DASHBOARD */}
-                        {view === 'dashboard' && (
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-end mb-4">
-                                    <h2 className="text-xl font-bold text-slate-800">Student Progress</h2>
-                                    <span className="text-sm text-slate-500">{students.length} Students Tracked</span>
-                                </div>
-                                
-                                {loading ? (
-                                    <div className="p-10 text-center text-slate-400">Loading live data...</div>
-                                ) : (
-                                    <div className="grid gap-3">
-                                        {students.map(s => (
-                                            <div key={s.id} className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex justify-between items-center hover:border-blue-300 transition">
-                                                <div>
-                                                    <h3 className="font-bold text-slate-700">{s.name}</h3>
-                                                    <p className="text-xs text-slate-400">Target: {s.target}%</p>
-                                                </div>
-                                                <div className="flex items-center gap-4">
-                                                    <div className="text-right">
-                                                        <span className={`text-lg font-black ${s.grade >= s.target ? 'text-green-600' : 'text-amber-500'}`}>
-                                                            {s.grade}%
-                                                        </span>
-                                                        <p className="text-[10px] uppercase font-bold text-slate-400">Current</p>
-                                                    </div>
-                                                    <button 
-                                                        onClick={() => STUDENTS_REF.doc(s.id).delete()}
-                                                        className="text-slate-300 hover:text-red-500 px-2"
-                                                    >
-                                                        ✕
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* VIEW: ADD/EDIT */}
-                        {view === 'add' && (
-                            <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-lg max-w-md mx-auto">
-                                <h2 className="text-xl font-bold mb-6 text-slate-800 border-b pb-2">New Entry</h2>
+                    <main className="max-w-4xl mx-auto px-6">
+                        {view === 'add' ? (
+                            <div className="bg-white p-8 rounded shadow-sm border max-w-md mx-auto">
+                                <h2 className="text-lg font-bold mb-4">Add Student Record</h2>
                                 <form onSubmit={handleSave} className="space-y-4">
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Student Name</label>
-                                        <input 
-                                            type="text" required
-                                            value={formData.name}
-                                            onChange={e => setFormData({...formData, name: e.target.value})}
-                                            className="w-full p-3 bg-slate-50 border rounded-md outline-none focus:ring-2 ring-blue-500"
-                                            placeholder="e.g. John Smith"
-                                        />
-                                    </div>
+                                    <input type="text" placeholder="Full Name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-3 border rounded" required />
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Current Grade (%)</label>
-                                            <input 
-                                                type="number" 
-                                                value={formData.grade}
-                                                onChange={e => setFormData({...formData, grade: e.target.value})}
-                                                className="w-full p-3 bg-slate-50 border rounded-md outline-none focus:ring-2 ring-blue-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Target (%)</label>
-                                            <input 
-                                                type="number" 
-                                                value={formData.target}
-                                                onChange={e => setFormData({...formData, target: e.target.value})}
-                                                className="w-full p-3 bg-slate-50 border rounded-md outline-none focus:ring-2 ring-blue-500"
-                                            />
-                                        </div>
+                                        <input type="number" placeholder="Grade %" value={formData.grade} onChange={e => setFormData({...formData, grade: e.target.value})} className="p-3 border rounded" required />
+                                        <input type="number" placeholder="Target %" value={formData.target} onChange={e => setFormData({...formData, target: e.target.value})} className="p-3 border rounded" required />
                                     </div>
-                                    <button className="w-full bg-blue-600 text-white font-bold py-4 rounded-md hover:bg-blue-700 shadow-md transition-all active:scale-95">
-                                        UPDATE TRACKER
-                                    </button>
+                                    <button className="w-full bg-slate-900 text-white py-3 rounded font-bold">SAVE DATA</button>
                                 </form>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {students.map(s => (
+                                    <div key={s.id} className="bg-white border rounded p-5 shadow-sm transition hover:shadow-md">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <div>
+                                                <h3 className="font-bold text-lg text-slate-800">{s.name}</h3>
+                                                <p className="text-xs text-slate-400 font-bold uppercase tracking-tighter">Target: {s.target}%</p>
+                                            </div>
+                                            <div className="text-right flex items-center gap-6">
+                                                <div>
+                                                    <span className={`text-2xl font-black ${s.grade >= s.target ? 'text-green-600' : 'text-amber-500'}`}>{s.grade}%</span>
+                                                </div>
+                                                <button 
+                                                    disabled={isGenerating}
+                                                    onClick={() => handleGenerateAI(s)}
+                                                    className="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full text-xs font-black border border-indigo-100 hover:bg-indigo-100 disabled:opacity-50"
+                                                >
+                                                    {isGenerating && aiResult.id === s.id ? "WRITING..." : "GENERATE AI REPORT"}
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* AI Response Display */}
+                                        {aiResult.id === s.id && (
+                                            <div className="mt-4 p-4 bg-slate-50 rounded border-l-4 border-indigo-500 animate-fade-in text-sm text-slate-600 italic">
+                                                {aiResult.text}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </main>
