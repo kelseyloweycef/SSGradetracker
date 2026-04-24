@@ -3,137 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Management Portal</title>
+    <title>Global Citizens | Staff Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap');
         body { font-family: 'Inter', sans-serif; }
-        .tab-active { color: #2563eb; border-bottom: 2px solid #2563eb; background: rgba(37, 99, 235, 0.05); }
+        .tab-active { color: #2563eb; border-bottom: 3px solid #2563eb; background: #f8fafc; }
         .hidden-tab { display: none; }
+        .sidebar-link:hover { background: rgba(255,255,255,0.1); }
     </style>
 </head>
-<body class="bg-slate-900/60 flex items-center justify-center min-h-screen p-4">
+<body class="bg-slate-50 min-h-screen flex">
 
-    <div id="studentModal" class="bg-white rounded-[2rem] w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+    <aside class="w-64 bg-slate-900 text-white hidden md:flex flex-col shrink-0">
+        <div class="p-6 border-b border-slate-800">
+            <h1 class="text-xl font-black tracking-tighter uppercase italic">Global Citizens</h1>
+            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">International Curriculum</p>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <a href="#" class="sidebar-link flex items-center gap-3 p-3 rounded-xl bg-blue-600 font-bold text-sm">
+                <i class="fa-solid fa-users w-5"></i> Student Tracking
+            </a>
+            <a href="#" class="sidebar-link flex items-center gap-3 p-3 rounded-xl text-slate-400 font-bold text-sm">
+                <i class="fa-solid fa-book-open w-5"></i> Department Docs
+            </a>
+            <a href="#" class="sidebar-link flex items-center gap-3 p-3 rounded-xl text-slate-400 font-bold text-sm">
+                <i class="fa-solid fa-chart-line w-5"></i> Data Analytics
+            </a>
+        </nav>
+        <div class="p-6 border-t border-slate-800">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-black">ST</div>
+                <div class="text-[10px] font-bold uppercase text-slate-400">Staff Member</div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-screen overflow-hidden">
         
-        <div class="p-8 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
-            <div class="flex items-center gap-5">
-                <div id="studentInitial" class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-blue-200">
-                    S
-                </div>
-                <div>
-                    <h2 id="studentName" class="text-3xl font-black text-slate-900 tracking-tight">Student Name</h2>
-                    <div class="flex items-center gap-2 mt-2">
-                        <span id="yearBadge" class="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md text-[10px] font-black uppercase tracking-widest">Year Group</span>
-                        <span id="senBadge" class="hidden px-2.5 py-1 bg-amber-50 text-amber-700 rounded-md text-[10px] font-black uppercase tracking-widest border border-amber-100">SEN / Support</span>
-                    </div>
-                </div>
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0">
+            <div class="flex items-center gap-2 text-sm font-bold text-slate-500">
+                <span>Dashboard</span>
+                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                <span class="text-slate-900" id="headerStudentName">Student Profile</span>
             </div>
-            <button onclick="closeModal()" class="p-3 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-900">
-                <i class="fa-solid fa-xmark text-xl"></i>
-            </button>
-        </div>
+            <div class="flex items-center gap-4">
+                <button class="bg-slate-100 p-2 rounded-lg text-slate-500"><i class="fa-solid fa-bell"></i></button>
+            </div>
+        </header>
 
-        <div class="flex px-8 border-b border-slate-100 bg-white shrink-0">
-            <button onclick="switchTab('grades')" id="tab-grades" class="tab-btn tab-active px-6 py-5 text-[10px] font-black uppercase tracking-widest transition-all">Academic Performance</button>
-            <button onclick="switchTab('interventions')" id="tab-interventions" class="tab-btn px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Staff Observations</button>
-            <button onclick="switchTab('profile')" id="tab-profile" class="tab-btn px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Student Profile</button>
-        </div>
-
-        <div class="flex-1 overflow-auto p-8 bg-slate-50/30">
-            
-            <div id="content-grades" class="tab-content grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2 space-y-8" id="gradesList">
-                    </div>
+        <div class="flex-1 overflow-auto">
+            <div class="max-w-6xl mx-auto p-8">
                 
-                <div class="space-y-6">
-                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                        <i class="fa-solid fa-plus text-blue-600"></i> Add Entry
-                    </h3>
-                    <form id="gradeForm" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-                        <select name="subject" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium">
-                            <option value="History">History</option>
-                            <option value="Geography">Geography</option>
-                            <option value="Psychology">Psychology</option>
-                        </select>
-                        <select name="type" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium">
-                            <option value="Aspirational">Aspirational</option>
-                            <option value="P1">P1 Mock</option>
-                            <option value="P2">P2 Mock</option>
-                            <option value="Final">Final</option>
-                        </select>
-                        <input name="grade" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-black" placeholder="Grade (e.g. 7 or A*)">
-                        <button type="submit" class="w-full bg-blue-600 text-white rounded-xl py-3 font-black text-sm shadow-lg shadow-blue-100">
-                            Sync Record
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <div id="content-profile" class="tab-content hidden-tab max-w-3xl">
-                <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
-                    <form id="profileForm" class="space-y-10">
-                        <div class="grid grid-cols-2 lg:grid-cols-3 gap-y-10 gap-x-8">
-                            <div class="space-y-2">
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Legal Identity</label>
-                                <input type="text" id="inputName" class="w-full bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 text-sm font-black">
+                <div class="flex items-end justify-between mb-8">
+                    <div class="flex items-center gap-6">
+                        <div id="profileIcon" class="w-24 h-24 bg-blue-600 rounded-3xl flex items-center justify-center text-white text-4xl font-black shadow-2xl shadow-blue-200">A</div>
+                        <div>
+                            <div class="flex items-center gap-3">
+                                <h2 id="displayName" class="text-4xl font-black text-slate-900 tracking-tight">Alex Thompson</h2>
+                                <span id="yearBadge" class="px-3 py-1 bg-slate-900 text-white rounded-lg text-xs font-black">Y13</span>
                             </div>
-                            <div class="space-y-2">
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Cohort</label>
-                                <select id="inputYear" class="w-full bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 text-sm font-black">
-                                    <option value="11">Year 11</option>
-                                    <option value="13">Year 13</option>
+                            <p class="text-slate-500 font-medium mt-1">Candidate ID: <span class="font-bold">HK-09223</span></p>
+                            <div id="senBadge" class="hidden mt-3">
+                                <span class="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-md text-[10px] font-black uppercase tracking-widest border border-amber-100">Learning Support (SEN)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex bg-white rounded-2xl border border-slate-200 overflow-hidden mb-8 shadow-sm">
+                    <button onclick="switchTab('performance')" id="tab-performance" class="tab-btn tab-active flex-1 py-4 text-[10px] font-black uppercase tracking-widest transition-all">Academic Performance</button>
+                    <button onclick="switchTab('observations')" id="tab-observations" class="tab-btn flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Staff Observations</button>
+                    <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Enrolment Settings</button>
+                </div>
+
+                <div id="content-performance" class="tab-content grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-6" id="gradesList">
+                        </div>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-circle-plus text-blue-600"></i> New Assessment
+                            </h3>
+                            <form id="gradeForm" class="space-y-4">
+                                <select name="subject" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 ring-blue-500/20">
+                                    <option>History</option>
+                                    <option>Geography</option>
+                                    <option>Economics</option>
+                                    <option>Psychology</option>
                                 </select>
-                            </div>
+                                <select name="type" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                                    <option value="Aspirational">Aspirational Target</option>
+                                    <option value="P1 Mock">Paper 1 Mock</option>
+                                    <option value="P2 Mock">Paper 2 Mock</option>
+                                    <option value="Final">Final Grade</option>
+                                </select>
+                                <input name="grade" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black uppercase" placeholder="Enter Grade (e.g. 7)">
+                                <button type="submit" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 transition-colors">
+                                    Sync to Database
+                                </button>
+                            </form>
                         </div>
-                        <div class="pt-8 border-t border-slate-100 flex justify-end">
-                            <button type="submit" class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest">
-                                Synchronize Profile
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
 
+                <div id="content-observations" class="tab-content hidden-tab space-y-6">
+                    <div class="bg-white p-8 rounded-3xl border border-slate-200 text-center py-20">
+                        <i class="fa-solid fa-message-dots text-slate-200 text-5xl mb-4"></i>
+                        <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest">No recent staff observations found.</p>
+                    </div>
+                </div>
+
+            </div>
         </div>
-    </div>
+    </main>
 
     <script>
-        // Mock State Management
+        // State Management
         const state = {
             student: {
                 name: "Alex Thompson",
-                yearGroup: "13",
+                year: "13",
                 isSEN: true,
                 grades: [
-                    { id: 1, subject: "History", type: "P1 Mock", value: "6", date: "12 Mar 2026" },
-                    { id: 2, subject: "History", type: "P2 Mock", value: "7", date: "15 Apr 2026" }
+                    { id: 1, subject: "History", type: "Aspirational", value: "7", date: "Jan 2026" },
+                    { id: 2, subject: "History", type: "P1 Mock", value: "6", date: "Mar 2026" },
+                    { id: 3, subject: "Geography", type: "Aspirational", value: "A*", date: "Feb 2026" }
                 ]
             }
         };
 
-        // UI Initialization
         function init() {
-            document.getElementById('studentName').innerText = state.student.name;
-            document.getElementById('studentInitial').innerText = state.student.name.charAt(0);
-            document.getElementById('yearBadge').innerText = `Year ${state.student.yearGroup}`;
+            document.getElementById('displayName').innerText = state.student.name;
+            document.getElementById('headerStudentName').innerText = state.student.name;
+            document.getElementById('profileIcon').innerText = state.student.name.charAt(0);
+            document.getElementById('yearBadge').innerText = `Year ${state.student.year}`;
             if(state.student.isSEN) document.getElementById('senBadge').classList.remove('hidden');
             renderGrades();
         }
 
         function switchTab(tabId) {
-            // Update Buttons
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('tab-active', 'text-blue-600');
-                btn.classList.add('text-slate-400');
-            });
-            document.getElementById(`tab-${tabId}`).classList.add('tab-active');
-            
-            // Update Content
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('hidden-tab');
-            });
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('tab-active', 'text-blue-600'));
+            document.getElementById(`tab-${tabId}`).classList.add('tab-active', 'text-blue-600');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden-tab'));
             document.getElementById(`content-${tabId}`).classList.remove('hidden-tab');
         }
 
@@ -141,25 +155,25 @@
             const container = document.getElementById('gradesList');
             container.innerHTML = '';
             
-            // Grouping by subject (simplified)
             const subjects = [...new Set(state.student.grades.map(g => g.subject))];
             
             subjects.forEach(subject => {
                 const subGrades = state.student.grades.filter(g => g.subject === subject);
                 const section = `
-                    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-                        <div class="bg-slate-50 px-6 py-3 border-b border-slate-100">
-                            <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">${subject}</h4>
+                    <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+                        <div class="bg-slate-50 px-8 py-4 border-b border-slate-100 flex justify-between items-center">
+                            <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">${subject}</h4>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase">Tracked Progress</span>
                         </div>
                         <table class="w-full text-left">
                             <tbody class="divide-y divide-slate-50">
                                 ${subGrades.map(g => `
-                                    <tr class="text-[11px]">
-                                        <td class="px-6 py-4 font-bold text-slate-600 uppercase">${g.type}</td>
-                                        <td class="px-6 py-4 text-center">
-                                            <span class="px-2 py-1 bg-blue-50 text-blue-700 rounded-md font-black">${g.value}</span>
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="px-8 py-5 text-[11px] font-bold text-slate-500 uppercase tracking-tight">${g.type}</td>
+                                        <td class="px-8 py-5 text-center">
+                                            <span class="px-3 py-1 bg-blue-50 text-blue-700 rounded-lg font-black text-xs">${g.value}</span>
                                         </td>
-                                        <td class="px-6 py-4 text-right text-slate-400">${g.date}</td>
+                                        <td class="px-8 py-5 text-right text-[10px] text-slate-400 font-bold uppercase">${g.date}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -170,7 +184,6 @@
             });
         }
 
-        // Form Handling
         document.getElementById('gradeForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
@@ -179,15 +192,11 @@
                 subject: formData.get('subject'),
                 type: formData.get('type'),
                 value: formData.get('grade'),
-                date: "Today"
+                date: "Apr 2026"
             });
             renderGrades();
             e.target.reset();
         });
-
-        function closeModal() {
-            alert("Modal closing logic would trigger here (redirect or DOM removal).");
-        }
 
         init();
     </script>
