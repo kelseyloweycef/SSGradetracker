@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Studies Grade Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .concern-row { background-color: #fff5f5; }
+        .trend-up { color: #10b981; }
+        .trend-down { color: #ef4444; }
+        .trend-stable { color: #6b7280; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <header class="bg-white shadow-sm border-b-4 border-blue-900 p-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <div class="relative w-16 h-16 border-2 border-dashed border-gray-300 rounded flex items-center justify-center overflow-hidden bg-gray-50" id="logo-container">
+                    <span id="placeholder-text" class="text-[10px] text-center text-gray-400">Click to upload logo</span>
+                    <img id="school-logo" class="hidden object-contain w-full h-full">
+                    <input type="file" id="logo-input" class="absolute inset-0 opacity-0 cursor-pointer" accept="image/*">
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-blue-900">Social Studies Grade Tracker</h1>
+                    <p class="text-xs text-gray-500" id="current-date"></p>
+                </div>
+            </div>
+            <nav class="space-x-2">
+                <button onclick="showSection('dashboard')" class="px-4 py-2 text-sm font-medium hover:bg-gray-100 rounded">Dashboard</button>
+                <button onclick="showSection('year-view')" class="px-4 py-2 text-sm font-medium hover:bg-gray-100 rounded">Year Group View</button>
+                <button onclick="showSection('compare')" class="px-4 py-2 text-sm font-medium hover:bg-gray-100 rounded">Compare Subjects</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-6">
+        
+        <section id="dashboard" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-4 rounded-lg shadow border-t-4 border-red-500">
+                    <h2 class="font-bold text-red-600 mb-4 flex items-center">
+                        ⚠️ Students of Concern
+                    </h2>
+                    <ul id="concern-list" class="text-sm space-y-3">
+                        <li class="p-2 bg-red-50 rounded"><strong>Doe, J. (Y11)</strong> - 15% drop in Geography</li>
+                        <li class="p-2 bg-red-50 rounded"><strong>Smith, A. (Y13)</strong> - Below target in Psychology</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow border-t-4 border-blue-500">
+                    <h2 class="font-bold text-blue-600 mb-4">📅 Deadlines</h2>
+                    <div class="space-y-2 text-sm">
+                        <p class="flex justify-between"><span>P3 Data Entry:</span> <span class="text-red-500 font-bold">2 Days Left</span></p>
+                        <p class="flex justify-between"><span>Tutor Comments:</span> <span>May 15th</span></p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow border-t-4 border-green-500">
+                    <h2 class="font-bold text-green-600 mb-4">💬 Recent Comments</h2>
+                    <div id="recent-comments" class="text-xs space-y-2 italic text-gray-600">
+                        "J. Doe: Extra support session offered for essay structure." - Mr. Brown
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="year-view" class="hidden bg-white rounded-lg shadow overflow-hidden">
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+                <select class="border rounded p-1 text-sm">
+                    <option>Year 11</option>
+                    <option>Year 13</option>
+                </select>
+                <button class="bg-blue-900 text-white px-4 py-1 rounded text-sm">+ Add Student</button>
+            </div>
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-gray-100 text-xs uppercase font-bold text-gray-600">
+                    <tr>
+                        <th class="p-4">Name</th>
+                        <th class="p-4">SEN</th>
+                        <th class="p-4">CEFR</th>
+                        <th class="p-4">P1</th>
+                        <th class="p-4">P2</th>
+                        <th class="p-4">P3</th>
+                        <th class="p-4">P4</th>
+                        <th class="p-4">Trend</th>
+                        <th class="p-4">Teacher Comments / Interventions</th>
+                        <th class="p-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="student-table-body" class="text-sm divide-y">
+                    <tr>
+                        <td class="p-4 font-medium">Doe, John</td>
+                        <td class="p-4 text-xs bg-yellow-100 text-center rounded">K</td>
+                        <td class="p-4">B2</td>
+                        <td class="p-4 text-gray-400">65</td>
+                        <td class="p-4 text-gray-400">62</td>
+                        <td class="p-4 font-bold">58</td>
+                        <td class="p-4">-</td>
+                        <td class="p-4 trend-down font-bold">▼ Down</td>
+                        <td class="p-4">
+                            <textarea class="w-full border rounded p-1 text-xs" placeholder="Add note..."></textarea>
+                        </td>
+                        <td class="p-4">
+                            <button onclick="moveStudent()" class="text-blue-600 hover:underline mr-2">Move</button>
+                            <button onclick="deleteStudent(this)" class="text-red-600 hover:underline">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+    </main>
+
+    <script>
+        // --- Navigation Logic ---
+        function showSection(sectionId) {
+            document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+
+        // --- Logo Upload Logic ---
+        const logoInput = document.getElementById('logo-input');
+        const schoolLogo = document.getElementById('school-logo');
+        const placeholder = document.getElementById('placeholder-text');
+
+        logoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    schoolLogo.src = event.target.result;
+                    schoolLogo.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // --- Delete Logic (Cascade Simulation) ---
+        function deleteStudent(btn) {
+            if (confirm("Are you sure? This will remove the student profile, grades, and all historical comments from the database.")) {
+                const row = btn.closest('tr');
+                row.remove();
+                // In Firebase, you would trigger the batch.delete() here
+                alert("Database Updated: All student records purged.");
+            }
+        }
+
+        function moveStudent() {
+            const targetClass = prompt("Enter new Class Name (e.g., 11B):");
+            if (targetClass) {
+                alert(`Student moved to ${targetClass}. All grade history preserved.`);
+            }
+        }
+
+        // Set Date
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-GB', {
+            day: 'numeric', month: 'long', year: 'numeric'
+        });
+    </script>
+</body>
+</html>
